@@ -112,6 +112,8 @@
 
 <script src="js/form-validation.js"></script>
 <script>
+const API_BASE = 'http://localhost:5050/api';
+
 document.addEventListener('DOMContentLoaded', function() {
   const V = EduValidation;
   const tabs = document.querySelectorAll('.tab-btn');
@@ -238,15 +240,29 @@ document.addEventListener('DOMContentLoaded', function() {
     return valid;
   }
 
-  // ── Simple password hash (client-side only, not real security) ─
-  function simpleHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash |= 0; // 32-bit integer
+  // ── Call the real backend to create an account ────────────
+  async function doRegister(payload, errorEl, submitBtn, focusInputEl, focusForm) {
+    V.setSubmitting(submitBtn, true);
+    try {
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        V.setSubmitting(submitBtn, false);
+        V.showFieldError(focusInputEl, data.error || 'Registration failed. Please try again.');
+        V.focusFirstInvalid(focusForm);
+        return;
+      }
+
+      window.location.href = 'login.html' + (payload.role === 'faculty' ? '?role=faculty' : '');
+    } catch (err) {
+      V.setSubmitting(submitBtn, false);
+      errorEl.textContent = 'Could not connect to server. Make sure the backend is running.';
     }
-    return 'h_' + Math.abs(hash).toString(36);
   }
 
   // ── Student Registration ──────────────────────────────────
@@ -262,32 +278,13 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    V.setSubmitting(submitBtn, true);
-
-    setTimeout(() => {
-      const name = sName.value.trim();
-      const grade = sGrade.value;
-      const phone = sPhone.value.trim();
-      const passwordHash = simpleHash(sPassword.value);
-
-      const users = V.getUsers();
-      if (users.some(u => u.role === 'student' && u.phone === phone)) {
-        V.setSubmitting(submitBtn, false);
-        V.showFieldError(sPhone, 'An account with this phone number already exists.');
-        V.focusFirstInvalid(studentForm);
-        return;
-      }
-
-      const newUser = {
-        role: 'student', username: name, phone, gradeLevel: grade,
-        passwordHash, points: 0, badges: [], lessonsCompleted: 0,
-        mathProgress: 0, scienceProgress: 0, memoryProgress: 0, language: 'en'
-      };
-      users.push(newUser);
-      V.saveUsers(users);
-      localStorage.setItem('eduquest_user', JSON.stringify(newUser));
-      window.location.href = 'index.html';
-    }, 400);
+    doRegister({
+      name: sName.value.trim(),
+      phone: sPhone.value.trim(),
+      password: sPassword.value,
+      role: 'student',
+      gradeLevel: sGrade.value
+    }, document.getElementById('student-error'), submitBtn, sPhone, studentForm);
   });
 
   // ── Faculty Registration ──────────────────────────────────
@@ -303,32 +300,13 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    V.setSubmitting(submitBtn, true);
-
-    setTimeout(() => {
-      const name = fName.value.trim();
-      const phone = fPhone.value.trim();
-      const email = fEmail.value.trim().toLowerCase();
-      const passwordHash = simpleHash(fPassword.value);
-
-      const users = V.getUsers();
-      if (users.some(u => u.role === 'faculty' && (u.email === email || (phone && u.phone === phone)))) {
-        V.setSubmitting(submitBtn, false);
-        V.showFieldError(fEmail, 'An account with this email or phone already exists.');
-        V.focusFirstInvalid(facultyForm);
-        return;
-      }
-
-      const newUser = {
-        role: 'faculty', username: name, phone, email,
-        passwordHash, points: 0, badges: [], lessonsCompleted: 0,
-        mathProgress: 0, scienceProgress: 0, memoryProgress: 0, language: 'en'
-      };
-      users.push(newUser);
-      V.saveUsers(users);
-      localStorage.setItem('eduquest_user', JSON.stringify(newUser));
-      window.location.href = 'index.html';
-    }, 400);
+    doRegister({
+      name: fName.value.trim(),
+      phone: fPhone.value.trim(),
+      email: fEmail.value.trim().toLowerCase(),
+      password: fPassword.value,
+      role: 'faculty'
+    }, document.getElementById('faculty-error'), submitBtn, fEmail, facultyForm);
   });
 });
 </script>

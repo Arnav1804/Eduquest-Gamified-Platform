@@ -29,6 +29,11 @@
                  required aria-required="true" autocomplete="tel" maxlength="10"
                  inputmode="numeric" pattern="\d{10}">
         </div>
+        <div class="field">
+          <label for="student-login-password">Password</label>
+          <input id="student-login-password" type="password" placeholder="Your password" class="input"
+                 required aria-required="true" autocomplete="current-password">
+        </div>
         <p id="student-error" class="field-error"></p>
         <div class="actions">
           <button id="student-login-btn" class="primary-btn primary-btn-flex" type="submit">Sign In →</button>
@@ -41,6 +46,11 @@
           <label for="faculty-email">Email Address</label>
           <input id="faculty-email" type="email" placeholder="name@example.com" class="input"
                  required aria-required="true" autocomplete="email">
+        </div>
+        <div class="field">
+         <label for="faculty-login-password">Password</label>
+         <input id="faculty-login-password" type="password" placeholder="Your password" class="input"
+                required aria-required="true" autocomplete="current-password">
         </div>
         <p id="faculty-error" class="field-error"></p>
         <div class="actions">
@@ -59,13 +69,14 @@
 
 <script src="js/form-validation.js"></script>
 <script>
+const API_BASE = 'http://localhost:5050/api';
+
 document.addEventListener('DOMContentLoaded', function() {
   const V = EduValidation;
   const tabs = document.querySelectorAll('.tab-btn');
   const studentForm = document.getElementById('student-form');
   const facultyForm = document.getElementById('faculty-form');
 
-  // ── Role Tab Switching ────────────────────────────────────
   const params = new URLSearchParams(window.location.search);
   if (params.get('role') === 'faculty') setRole('faculty');
 
@@ -78,94 +89,73 @@ document.addEventListener('DOMContentLoaded', function() {
       facultyForm.classList.add('active');
       studentForm.classList.remove('active');
     }
-    // Clear errors when switching tabs
     V.clearAllErrors(studentForm);
     V.clearAllErrors(facultyForm);
   }
   tabs.forEach(t => t.addEventListener('click', () => setRole(t.dataset.role)));
 
-  // ── Live Validation Wiring ────────────────────────────────
   const phoneInput = document.getElementById('student-phone');
   const emailInput = document.getElementById('faculty-email');
-
   V.attachLiveValidation(phoneInput, val => V.isValidPhone(val));
   V.attachLiveValidation(emailInput, val => V.isValidEmail(val));
 
-  // ── Student Login ─────────────────────────────────────────
+  async function doLogin(identifier, password, role, errorEl, submitBtn) {
+    V.setSubmitting(submitBtn, true);
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password, role })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errorEl.textContent = data.error || 'Login failed';
+        V.setSubmitting(submitBtn, false);
+        return;
+      }
+      sessionStorage.setItem('eduquest_token', data.token);
+      sessionStorage.setItem('eduquest_user', JSON.stringify(data.user));
+      window.location.href = 'index.html';
+    } catch (err) {
+      errorEl.textContent = 'Could not connect to server. Is it running?';
+      V.setSubmitting(submitBtn, false);
+    }
+  }
+
   studentForm.addEventListener('submit', function(e) {
     e.preventDefault();
     V.clearAllErrors(studentForm);
     V.trimAllInputs(studentForm);
-
     const phone = phoneInput.value.trim();
+    const password = document.getElementById('student-login-password').value;
+    const errorEl = document.getElementById('student-error');
     const submitBtn = document.getElementById('student-login-btn');
 
-    // Validate
     const phoneResult = V.isValidPhone(phone);
     if (!phoneResult.valid) {
       V.showFieldError(phoneInput, phoneResult.message);
       V.focusFirstInvalid(studentForm);
       return;
     }
-
-    // Submit
-    V.setSubmitting(submitBtn, true);
-
-    // Simulate brief processing delay for UX
-    setTimeout(() => {
-      let users = V.getUsers();
-      let user = users.find(u => u.role === 'student' && u.phone === phone);
-      if (!user) {
-        user = {
-          role: 'student', username: 'Student', phone,
-          gradeLevel: '6', points: 0, badges: [],
-          lessonsCompleted: 0, mathProgress: 0, scienceProgress: 0,
-          memoryProgress: 0, language: 'en'
-        };
-        users.push(user);
-        V.saveUsers(users);
-      }
-      localStorage.setItem('eduquest_user', JSON.stringify(user));
-      window.location.href = 'index.html';
-    }, 400);
+    doLogin(phone, password, 'student', errorEl, submitBtn);
   });
 
-  // ── Faculty Login ─────────────────────────────────────────
   facultyForm.addEventListener('submit', function(e) {
     e.preventDefault();
     V.clearAllErrors(facultyForm);
     V.trimAllInputs(facultyForm);
-
     const email = emailInput.value.trim().toLowerCase();
-    emailInput.value = email; // Ensure lowercased
+    const password = document.getElementById('faculty-login-password').value;
+    const errorEl = document.getElementById('faculty-error');
     const submitBtn = document.getElementById('faculty-login-btn');
 
-    // Validate
     const emailResult = V.isValidEmail(email);
     if (!emailResult.valid) {
       V.showFieldError(emailInput, emailResult.message);
       V.focusFirstInvalid(facultyForm);
       return;
     }
-
-    // Submit
-    V.setSubmitting(submitBtn, true);
-
-    setTimeout(() => {
-      let users = V.getUsers();
-      let user = users.find(u => u.role === 'faculty' && u.email === email);
-      if (!user) {
-        user = {
-          role: 'faculty', username: 'Teacher', email, phone: '',
-          points: 0, badges: [], lessonsCompleted: 0,
-          mathProgress: 0, scienceProgress: 0, memoryProgress: 0, language: 'en'
-        };
-        users.push(user);
-        V.saveUsers(users);
-      }
-      localStorage.setItem('eduquest_user', JSON.stringify(user));
-      window.location.href = 'index.html';
-    }, 400);
+    doLogin(email, password, 'faculty', errorEl, submitBtn);
   });
 });
 </script>
