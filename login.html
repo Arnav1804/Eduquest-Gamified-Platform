@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login – EduQuest</title>
+  <meta name="description" content="Sign in to EduQuest to continue your learning journey.">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">🎓</div>
+      <h1>EduQuest</h1>
+      <p>Sign in to continue learning</p>
+    </div>
+    <div class="auth-body">
+      <div class="role-tabs">
+        <button class="tab-btn active" data-role="student" type="button">🎓 Student</button>
+        <button class="tab-btn" data-role="faculty" type="button">👩‍🏫 Teacher</button>
+      </div>
+
+      <form id="student-form" class="form active" novalidate>
+        <div class="field">
+          <label for="student-phone">Phone Number</label>
+          <input id="student-phone" type="tel" placeholder="e.g. 9876543210" class="input"
+                 required aria-required="true" autocomplete="tel" maxlength="10"
+                 inputmode="numeric" pattern="\d{10}">
+        </div>
+        <p id="student-error" class="field-error"></p>
+        <div class="actions">
+          <button id="student-login-btn" class="primary-btn primary-btn-flex" type="submit">Sign In →</button>
+        </div>
+        <p class="auth-footer-text">New here? <a class="link" href="register.html?role=student">Create an account</a></p>
+      </form>
+
+      <form id="faculty-form" class="form" novalidate>
+        <div class="field">
+          <label for="faculty-email">Email Address</label>
+          <input id="faculty-email" type="email" placeholder="name@example.com" class="input"
+                 required aria-required="true" autocomplete="email">
+        </div>
+        <p id="faculty-error" class="field-error"></p>
+        <div class="actions">
+          <button id="faculty-login-btn" class="primary-btn primary-btn-flex" type="submit">Sign In →</button>
+        </div>
+        <p class="auth-footer-text">New here? <a class="link" href="register.html?role=faculty">Create an account</a></p>
+      </form>
+
+      <div class="divider"></div>
+      <p class="auth-guest-link">
+        <a href="index.html" class="link">← Continue as Guest</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="js/form-validation.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const V = EduValidation;
+  const tabs = document.querySelectorAll('.tab-btn');
+  const studentForm = document.getElementById('student-form');
+  const facultyForm = document.getElementById('faculty-form');
+
+  // ── Role Tab Switching ────────────────────────────────────
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('role') === 'faculty') setRole('faculty');
+
+  function setRole(role) {
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.role === role));
+    if (role === 'student') {
+      studentForm.classList.add('active');
+      facultyForm.classList.remove('active');
+    } else {
+      facultyForm.classList.add('active');
+      studentForm.classList.remove('active');
+    }
+    // Clear errors when switching tabs
+    V.clearAllErrors(studentForm);
+    V.clearAllErrors(facultyForm);
+  }
+  tabs.forEach(t => t.addEventListener('click', () => setRole(t.dataset.role)));
+
+  // ── Live Validation Wiring ────────────────────────────────
+  const phoneInput = document.getElementById('student-phone');
+  const emailInput = document.getElementById('faculty-email');
+
+  V.attachLiveValidation(phoneInput, val => V.isValidPhone(val));
+  V.attachLiveValidation(emailInput, val => V.isValidEmail(val));
+
+  // ── Student Login ─────────────────────────────────────────
+  studentForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    V.clearAllErrors(studentForm);
+    V.trimAllInputs(studentForm);
+
+    const phone = phoneInput.value.trim();
+    const submitBtn = document.getElementById('student-login-btn');
+
+    // Validate
+    const phoneResult = V.isValidPhone(phone);
+    if (!phoneResult.valid) {
+      V.showFieldError(phoneInput, phoneResult.message);
+      V.focusFirstInvalid(studentForm);
+      return;
+    }
+
+    // Submit
+    V.setSubmitting(submitBtn, true);
+
+    // Simulate brief processing delay for UX
+    setTimeout(() => {
+      let users = V.getUsers();
+      let user = users.find(u => u.role === 'student' && u.phone === phone);
+      if (!user) {
+        user = {
+          role: 'student', username: 'Student', phone,
+          gradeLevel: '6', points: 0, badges: [],
+          lessonsCompleted: 0, mathProgress: 0, scienceProgress: 0,
+          memoryProgress: 0, language: 'en'
+        };
+        users.push(user);
+        V.saveUsers(users);
+      }
+      localStorage.setItem('eduquest_user', JSON.stringify(user));
+      window.location.href = 'index.html';
+    }, 400);
+  });
+
+  // ── Faculty Login ─────────────────────────────────────────
+  facultyForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    V.clearAllErrors(facultyForm);
+    V.trimAllInputs(facultyForm);
+
+    const email = emailInput.value.trim().toLowerCase();
+    emailInput.value = email; // Ensure lowercased
+    const submitBtn = document.getElementById('faculty-login-btn');
+
+    // Validate
+    const emailResult = V.isValidEmail(email);
+    if (!emailResult.valid) {
+      V.showFieldError(emailInput, emailResult.message);
+      V.focusFirstInvalid(facultyForm);
+      return;
+    }
+
+    // Submit
+    V.setSubmitting(submitBtn, true);
+
+    setTimeout(() => {
+      let users = V.getUsers();
+      let user = users.find(u => u.role === 'faculty' && u.email === email);
+      if (!user) {
+        user = {
+          role: 'faculty', username: 'Teacher', email, phone: '',
+          points: 0, badges: [], lessonsCompleted: 0,
+          mathProgress: 0, scienceProgress: 0, memoryProgress: 0, language: 'en'
+        };
+        users.push(user);
+        V.saveUsers(users);
+      }
+      localStorage.setItem('eduquest_user', JSON.stringify(user));
+      window.location.href = 'index.html';
+    }, 400);
+  });
+});
+</script>
+</body>
+</html>

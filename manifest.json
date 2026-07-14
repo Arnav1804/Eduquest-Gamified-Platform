@@ -1,0 +1,16 @@
+{
+  "name": "EduQuest - Gamified STEM Learning",
+  "short_name": "EduQuest",
+  "description": "A gamified STEM learning app for students in grades 6-12",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0f7ff",
+  "theme_color": "#4a6fa5",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "categories": ["education", "games"],
+  "lang": "en"
+}

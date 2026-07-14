@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register – EduQuest</title>
+  <meta name="description" content="Create your EduQuest account and start your learning journey today.">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="auth-wrapper">
+  <div class="auth-card auth-card-wide">
+    <div class="auth-header">
+      <div class="auth-logo">✨</div>
+      <h1>Create Account</h1>
+      <p>Join EduQuest to start learning</p>
+    </div>
+    <div class="auth-body">
+      <div class="role-tabs">
+        <button class="tab-btn active" data-role="student" type="button">🎓 Student</button>
+        <button class="tab-btn" data-role="faculty" type="button">👩‍🏫 Teacher</button>
+      </div>
+
+      <!-- ── Student Registration ──────────────────────────── -->
+      <form id="student-form" class="form active" novalidate>
+        <div class="grid-2">
+          <div class="field">
+            <label for="student-name">Full Name</label>
+            <input id="student-name" type="text" placeholder="Your full name" class="input"
+                   required aria-required="true" autocomplete="name" maxlength="50">
+          </div>
+          <div class="field">
+            <label for="student-grade">Grade / Class</label>
+            <select id="student-grade" class="input" required aria-required="true">
+              <option value="6">Class 6</option>
+              <option value="7">Class 7</option>
+              <option value="8">Class 8</option>
+              <option value="9">Class 9</option>
+              <option value="10">Class 10</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="student-phone">Phone Number</label>
+          <input id="student-phone" type="tel" placeholder="e.g. 9876543210" class="input"
+                 required aria-required="true" autocomplete="tel" maxlength="10"
+                 inputmode="numeric" pattern="\d{10}">
+        </div>
+        <div class="field">
+          <label for="student-password">Password</label>
+          <div class="password-wrapper">
+            <input id="student-password" type="password" placeholder="Create a strong password" class="input"
+                   required aria-required="true" autocomplete="new-password" maxlength="64">
+          </div>
+          <div id="student-password-strength-container"></div>
+        </div>
+        <div class="field">
+          <label for="student-confirm-password">Confirm Password</label>
+          <div class="password-wrapper">
+            <input id="student-confirm-password" type="password" placeholder="Re-enter your password" class="input"
+                   required aria-required="true" autocomplete="new-password" maxlength="64">
+          </div>
+        </div>
+        <p id="student-error" class="field-error"></p>
+        <button id="student-register-btn" class="primary-btn w-full primary-btn-center" type="submit">Create Account →</button>
+        <p class="auth-footer-text-sm">Already have an account? <a class="link" href="login.html">Sign in</a></p>
+      </form>
+
+      <!-- ── Faculty Registration ──────────────────────────── -->
+      <form id="faculty-form" class="form" novalidate>
+        <div class="grid-2">
+          <div class="field">
+            <label for="faculty-name">Full Name</label>
+            <input id="faculty-name" type="text" placeholder="Your full name" class="input"
+                   required aria-required="true" autocomplete="name" maxlength="50">
+          </div>
+          <div class="field">
+            <label for="faculty-phone">Phone Number</label>
+            <input id="faculty-phone" type="tel" placeholder="e.g. 9876543210" class="input"
+                   required aria-required="true" autocomplete="tel" maxlength="10"
+                   inputmode="numeric" pattern="\d{10}">
+          </div>
+        </div>
+        <div class="field">
+          <label for="faculty-email">Email Address</label>
+          <input id="faculty-email" type="email" placeholder="name@example.com" class="input"
+                 required aria-required="true" autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="faculty-password">Password</label>
+          <div class="password-wrapper">
+            <input id="faculty-password" type="password" placeholder="Create a strong password" class="input"
+                   required aria-required="true" autocomplete="new-password" maxlength="64">
+          </div>
+          <div id="faculty-password-strength-container"></div>
+        </div>
+        <div class="field">
+          <label for="faculty-confirm-password">Confirm Password</label>
+          <div class="password-wrapper">
+            <input id="faculty-confirm-password" type="password" placeholder="Re-enter your password" class="input"
+                   required aria-required="true" autocomplete="new-password" maxlength="64">
+          </div>
+        </div>
+        <p id="faculty-error" class="field-error"></p>
+        <button id="faculty-register-btn" class="primary-btn w-full primary-btn-center" type="submit">Create Account →</button>
+        <p class="auth-footer-text-sm">Already have an account? <a class="link" href="login.html">Sign in</a></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/form-validation.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const V = EduValidation;
+  const tabs = document.querySelectorAll('.tab-btn');
+  const studentForm = document.getElementById('student-form');
+  const facultyForm = document.getElementById('faculty-form');
+
+  // ── Role Tab Switching ────────────────────────────────────
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('role') === 'faculty') setRole('faculty');
+
+  function setRole(role) {
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.role === role));
+    if (role === 'student') {
+      studentForm.classList.add('active');
+      facultyForm.classList.remove('active');
+    } else {
+      facultyForm.classList.add('active');
+      studentForm.classList.remove('active');
+    }
+    V.clearAllErrors(studentForm);
+    V.clearAllErrors(facultyForm);
+  }
+  tabs.forEach(t => t.addEventListener('click', () => setRole(t.dataset.role)));
+
+  // ── Input References ──────────────────────────────────────
+  // Student
+  const sName = document.getElementById('student-name');
+  const sGrade = document.getElementById('student-grade');
+  const sPhone = document.getElementById('student-phone');
+  const sPassword = document.getElementById('student-password');
+  const sConfirm = document.getElementById('student-confirm-password');
+
+  // Faculty
+  const fName = document.getElementById('faculty-name');
+  const fPhone = document.getElementById('faculty-phone');
+  const fEmail = document.getElementById('faculty-email');
+  const fPassword = document.getElementById('faculty-password');
+  const fConfirm = document.getElementById('faculty-confirm-password');
+
+  // ── Password Toggle & Strength UI ─────────────────────────
+  V.createPasswordToggle(sPassword);
+  V.createPasswordToggle(sConfirm);
+  V.createPasswordToggle(fPassword);
+  V.createPasswordToggle(fConfirm);
+
+  const updateStudentStrength = V.createPasswordStrengthUI(
+    document.getElementById('student-password-strength-container')
+  );
+  const updateFacultyStrength = V.createPasswordStrengthUI(
+    document.getElementById('faculty-password-strength-container')
+  );
+
+  // Live password strength updates
+  sPassword.addEventListener('input', () => updateStudentStrength(sPassword.value));
+  fPassword.addEventListener('input', () => updateFacultyStrength(fPassword.value));
+
+  // ── Live Validation Wiring ────────────────────────────────
+  V.attachLiveValidation(sName, val => V.isValidName(val));
+  V.attachLiveValidation(sPhone, val => V.isValidPhone(val));
+  V.attachLiveValidation(sPassword, val => V.isValidPassword(val));
+  V.attachLiveValidation(sConfirm, val => V.doPasswordsMatch(sPassword.value, val));
+
+  V.attachLiveValidation(fName, val => V.isValidName(val));
+  V.attachLiveValidation(fPhone, val => V.isValidPhone(val));
+  V.attachLiveValidation(fEmail, val => V.isValidEmail(val));
+  V.attachLiveValidation(fPassword, val => V.isValidPassword(val));
+  V.attachLiveValidation(fConfirm, val => V.doPasswordsMatch(fPassword.value, val));
+
+  // When password changes, re-validate confirm if it was already invalid
+  sPassword.addEventListener('input', () => {
+    const field = sConfirm.closest('.field');
+    if (field && field.classList.contains('field-invalid')) {
+      const result = V.doPasswordsMatch(sPassword.value, sConfirm.value);
+      if (result.valid) V.clearFieldError(sConfirm);
+    }
+  });
+  fPassword.addEventListener('input', () => {
+    const field = fConfirm.closest('.field');
+    if (field && field.classList.contains('field-invalid')) {
+      const result = V.doPasswordsMatch(fPassword.value, fConfirm.value);
+      if (result.valid) V.clearFieldError(fConfirm);
+    }
+  });
+
+  // ── Validate All Fields (returns true if valid) ───────────
+  function validateStudentForm() {
+    let valid = true;
+    const fields = [
+      { input: sName, validator: () => V.isValidName(sName.value) },
+      { input: sPhone, validator: () => V.isValidPhone(sPhone.value) },
+      { input: sPassword, validator: () => V.isValidPassword(sPassword.value) },
+      { input: sConfirm, validator: () => V.doPasswordsMatch(sPassword.value, sConfirm.value) },
+    ];
+
+    fields.forEach(({ input, validator }) => {
+      const result = validator();
+      if (!result.valid) {
+        V.showFieldError(input, result.message);
+        valid = false;
+      }
+    });
+
+    return valid;
+  }
+
+  function validateFacultyForm() {
+    let valid = true;
+    const fields = [
+      { input: fName, validator: () => V.isValidName(fName.value) },
+      { input: fPhone, validator: () => V.isValidPhone(fPhone.value) },
+      { input: fEmail, validator: () => V.isValidEmail(fEmail.value) },
+      { input: fPassword, validator: () => V.isValidPassword(fPassword.value) },
+      { input: fConfirm, validator: () => V.doPasswordsMatch(fPassword.value, fConfirm.value) },
+    ];
+
+    fields.forEach(({ input, validator }) => {
+      const result = validator();
+      if (!result.valid) {
+        V.showFieldError(input, result.message);
+        valid = false;
+      }
+    });
+
+    return valid;
+  }
+
+  // ── Simple password hash (client-side only, not real security) ─
+  function simpleHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash |= 0; // 32-bit integer
+    }
+    return 'h_' + Math.abs(hash).toString(36);
+  }
+
+  // ── Student Registration ──────────────────────────────────
+  studentForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    V.clearAllErrors(studentForm);
+    V.trimAllInputs(studentForm);
+
+    const submitBtn = document.getElementById('student-register-btn');
+
+    if (!validateStudentForm()) {
+      V.focusFirstInvalid(studentForm);
+      return;
+    }
+
+    V.setSubmitting(submitBtn, true);
+
+    setTimeout(() => {
+      const name = sName.value.trim();
+      const grade = sGrade.value;
+      const phone = sPhone.value.trim();
+      const passwordHash = simpleHash(sPassword.value);
+
+      const users = V.getUsers();
+      if (users.some(u => u.role === 'student' && u.phone === phone)) {
+        V.setSubmitting(submitBtn, false);
+        V.showFieldError(sPhone, 'An account with this phone number already exists.');
+        V.focusFirstInvalid(studentForm);
+        return;
+      }
+
+      const newUser = {
+        role: 'student', username: name, phone, gradeLevel: grade,
+        passwordHash, points: 0, badges: [], lessonsCompleted: 0,
+        mathProgress: 0, scienceProgress: 0, memoryProgress: 0, language: 'en'
+      };
+      users.push(newUser);
+      V.saveUsers(users);
+      localStorage.setItem('eduquest_user', JSON.stringify(newUser));
+      window.location.href = 'index.html';
+    }, 400);
+  });
+
+  // ── Faculty Registration ──────────────────────────────────
+  facultyForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    V.clearAllErrors(facultyForm);
+    V.trimAllInputs(facultyForm);
+
+    const submitBtn = document.getElementById('faculty-register-btn');
+
+    if (!validateFacultyForm()) {
+      V.focusFirstInvalid(facultyForm);
+      return;
+    }
+
+    V.setSubmitting(submitBtn, true);
+
+    setTimeout(() => {
+      const name = fName.value.trim();
+      const phone = fPhone.value.trim();
+      const email = fEmail.value.trim().toLowerCase();
+      const passwordHash = simpleHash(fPassword.value);
+
+      const users = V.getUsers();
+      if (users.some(u => u.role === 'faculty' && (u.email === email || (phone && u.phone === phone)))) {
+        V.setSubmitting(submitBtn, false);
+        V.showFieldError(fEmail, 'An account with this email or phone already exists.');
+        V.focusFirstInvalid(facultyForm);
+        return;
+      }
+
+      const newUser = {
+        role: 'faculty', username: name, phone, email,
+        passwordHash, points: 0, badges: [], lessonsCompleted: 0,
+        mathProgress: 0, scienceProgress: 0, memoryProgress: 0, language: 'en'
+      };
+      users.push(newUser);
+      V.saveUsers(users);
+      localStorage.setItem('eduquest_user', JSON.stringify(newUser));
+      window.location.href = 'index.html';
+    }, 400);
+  });
+});
+</script>
+</body>
+</html>

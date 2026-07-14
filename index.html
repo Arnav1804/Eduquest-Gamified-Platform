@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduQuest — Gamified STEM Learning</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- Page Loader -->
+<div id="page-loader">
+  <div class="loader-inner">
+    <div class="loader-ring"></div>
+    <p class="loader-text">Loading EduQuest…</p>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Match Checkmark (memory game) -->
+<div id="match-checkmark">✓</div>
+
+<!-- Sidebar -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">🎓</div>
+    <span class="sidebar-logo-text">EduQuest</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-avatar" id="sidebar-avatar">S</div>
+    <div>
+      <div class="sidebar-user-name" id="sidebar-username">Student</div>
+      <div class="sidebar-user-role" id="sidebar-role">Student · Grade 6</div>
+    </div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="sidebar-nav-section">
+      <div class="sidebar-nav-label">Navigation</div>
+      <button class="nav-item active" onclick="showDashboard(); closeSidebar();" id="nav-home">
+        <span class="nav-item-icon">🏠</span> Dashboard
+      </button>
+      <button class="nav-item" onclick="closeSidebar(); scrollToSection('lessons-section')">
+        <span class="nav-item-icon">📚</span> Lessons
+      </button>
+      <button class="nav-item" onclick="closeSidebar(); scrollToSection('badges-section')">
+        <span class="nav-item-icon">🏆</span> Badges
+      </button>
+    </div>
+    <div class="sidebar-nav-section" id="nav-teacher-section">
+      <div class="sidebar-nav-label">Teacher</div>
+      <button class="nav-item" onclick="showTeacherDashboard(); closeSidebar();">
+        <span class="nav-item-icon">📊</span> Teacher Dashboard
+      </button>
+    </div>
+    <div class="sidebar-nav-section">
+      <div class="sidebar-nav-label">Account</div>
+      <button class="nav-item" onclick="exportUserData()">
+        <span class="nav-item-icon">💾</span> Export Data
+      </button>
+      <button class="nav-item" onclick="importUserData()">
+        <span class="nav-item-icon">📥</span> Import Data
+      </button>
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <button class="btn btn-secondary w-full" onclick="logout()">Sign Out</button>
+  </div>
+</nav>
+
+<!-- ============ LANDING SCREEN ============ -->
+<div id="landing-screen" class="screen active">
+  <div class="landing-grid">
+    <div class="landing-hero">
+      <div class="landing-badge">🚀 Gamified STEM Learning Platform</div>
+      <h1>Learn <span>Smarter</span>,<br>Level Up Faster</h1>
+      <p>EduQuest makes science, math and tech exciting with quizzes, memory games and real-time progress tracking.</p>
+      <div class="landing-cta-row">
+        <a href="login.html" class="btn btn-primary btn-lg">Get Started →</a>
+        <a href="register.html" class="btn btn-secondary btn-lg btn-landing-outline">Create Account</a>
+      </div>
+    </div>
+    <div class="landing-cards">
+      <div class="portal-card" onclick="enterAsGuest('student')">
+        <div class="portal-card-icon portal-icon-student">🎓</div>
+        <h3>Student Portal</h3>
+        <p>Track progress, earn badges, play quizzes and hit your daily goals.</p>
+        <div class="card-btn">Enter as Student →</div>
+      </div>
+      <div class="portal-card" onclick="enterAsGuest('faculty')">
+        <div class="portal-card-icon portal-icon-faculty">👩‍🏫</div>
+        <h3>Teacher Dashboard</h3>
+        <p>Monitor class performance, upload materials and post announcements.</p>
+        <div class="card-btn">Enter as Teacher →</div>
+      </div>
+    </div>
+    <div class="landing-features">
+      <div class="feature-item">
+        <div class="icon">🎮</div>
+        <h4>Gamified Games</h4>
+        <p>5 interactive game types to reinforce learning</p>
+      </div>
+      <div class="feature-item">
+        <div class="icon">📈</div>
+        <h4>Real-time Progress</h4>
+        <p>Live score updates and badge system</p>
+      </div>
+      <div class="feature-item">
+        <div class="icon">🏅</div>
+        <h4>Earn Badges</h4>
+        <p>Unlock achievements as you master subjects</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ STUDENT DASHBOARD SCREEN ============ -->
+<div id="dashboard-screen" class="screen">
+  <!-- Top Nav -->
+  <header class="topnav">
+    <div class="topnav-left">
+      <button class="btn-icon btn-icon-menu" id="menu-btn" onclick="openSidebar()" title="Menu">☰</button>
+      <span class="topnav-logo">EduQuest</span>
+    </div>
+    <div class="topnav-right">
+      <select id="header-lang" class="header-select" aria-label="Language">
+        <option value="en">🌐 English</option>
+        <option value="hi">🇮🇳 हिन्दी</option>
+        <option value="od">🇮🇳 ଓଡ଼ିଆ</option>
+      </select>
+      <div class="topnav-avatar" id="topnav-avatar" onclick="openSidebar()">S</div>
+    </div>
+  </header>
+
+  <main class="dash-layout">
+
+    <!-- WELCOME CARD -->
+    <div class="welcome-card">
+      <div class="welcome-top">
+        <div>
+          <div class="welcome-greeting">Good day,</div>
+          <div class="welcome-name" id="username">Student</div>
+          <div class="welcome-subtitle">Keep it up! You're doing great. 🎯</div>
+        </div>
+        <div class="welcome-streak">
+          <span class="streak-num">🔥</span>
+          <span class="streak-label">Active</span>
+        </div>
+      </div>
+      <div class="welcome-stats">
+        <div class="welcome-stat">
+          <span class="welcome-stat-val" id="total-points">0</span>
+          <span class="welcome-stat-label">⭐ Points</span>
+        </div>
+        <div class="welcome-stat">
+          <span class="welcome-stat-val" id="badges-count">0</span>
+          <span class="welcome-stat-label">🏆 Badges</span>
+        </div>
+        <div class="welcome-stat">
+          <span class="welcome-stat-val" id="lessons-completed">0</span>
+          <span class="welcome-stat-label">📚 Lessons</span>
+        </div>
+      </div>
+      <div class="daily-goal-section">
+        <div class="daily-goal-label">
+          <span id="goal-text">Daily Goal: Solve 5 problems</span>
+          <span id="daily-goal-done">0</span>/<span id="daily-goal-target">5</span>
+        </div>
+        <div class="daily-goal-bar">
+          <div class="daily-goal-fill" id="daily-goal-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS ROW -->
+    <div id="student-portal">
+      <div class="section-title">Your Progress</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon purple">📐</div>
+          <div class="stat-body">
+            <div class="stat-value" id="math-score-display">0</div>
+            <div class="stat-label">Math Score</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">🔬</div>
+          <div class="stat-body">
+            <div class="stat-value" id="science-score-display">0</div>
+            <div class="stat-label">Science Score</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">📖</div>
+          <div class="stat-body">
+            <div class="stat-value" id="english-score-display">0</div>
+            <div class="stat-label">English Score</div>
+          </div>
+        </div>
+        <div class="stat-card" id="recent-activity-card">
+          <div class="stat-icon runner">🏃</div>
+          <div class="stat-body">
+            <div class="stat-value" id="activity-count">0</div>
+            <div class="stat-label">Activities Done</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTINUE LEARNING -->
+      <div class="section-title mt-6">Continue Learning</div>
+      <div id="continue-learning-list" class="continue-list"></div>
+
+      <!-- RECENT ACTIVITY -->
+      <div class="section-title mt-6">Recent Activity</div>
+      <div id="recent-activity-list" class="activity-list"></div>
+
+      <!-- ANNOUNCEMENTS -->
+      <div class="section-title mt-6" id="announcements-section-header">Announcements</div>
+      <div id="student-announcements-list" class="activity-list"></div>
+
+      <!-- CLASS & LEADERBOARD -->
+      <div id="class-section" class="mt-6">
+        <div class="section-title">My Classes <button onclick="openJoinClassModal()">+ Join Class</button></div>
+        <div id="student-classes-list" class="activity-list"></div>
+        <div id="class-leaderboard-section" style="display:none;" class="mt-4">
+          <div class="section-title" id="student-leaderboard-title">Leaderboard</div>
+          <div id="class-leaderboard"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BADGES SECTION -->
+    <div id="badges-section">
+      <div class="section-title">Your Badges</div>
+      <div class="badges-grid" id="badges-container">
+        <div class="badge-card locked" data-badge="math">
+          <div class="badge-emoji">🧮</div>
+          <div class="badge-name">Math Whiz</div>
+        </div>
+        <div class="badge-card locked" data-badge="science">
+          <div class="badge-emoji">🔬</div>
+          <div class="badge-name">Science Explorer</div>
+        </div>
+        <div class="badge-card locked" data-badge="memory">
+          <div class="badge-emoji">🧠</div>
+          <div class="badge-name">Memory Master</div>
+        </div>
+        <div class="badge-card locked" data-badge="geometry">
+          <div class="badge-emoji">📐</div>
+          <div class="badge-name">Geo Pro</div>
+        </div>
+        <div class="badge-card locked" data-badge="physics">
+          <div class="badge-emoji">⚡</div>
+          <div class="badge-name">Physics Ace</div>
+        </div>
+        <div class="badge-card locked" data-badge="math_master">
+          <div class="badge-emoji">🏆</div>
+          <div class="badge-name">Math Master</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LESSONS SECTION -->
+    <div id="lessons-section">
+      <div class="section-title">STEM Lessons</div>
+      <div class="lessons-grid">
+
+        <div class="lesson-card card-hover" data-lesson="math">
+          <div class="lesson-card-top">
+            <div class="lesson-icon-wrap lesson-icon-math">➕</div>
+            <div class="chip chip-primary">Math</div>
+          </div>
+          <div>
+            <h4>Mathematics Puzzle</h4>
+            <p>Solve equations and unlock rewards</p>
+          </div>
+          <div class="lesson-meta">
+            <span class="lesson-difficulty diff-easy">● Easy</span>
+            <span class="lesson-points">+10 pts/q</span>
+          </div>
+          <div class="lesson-progress-wrap">
+            <div class="lesson-progress-label">
+              <span>Progress</span>
+              <span id="math-pct">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" data-lesson="math"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="showGameStart('math')">Start →</button>
+        </div>
+
+        <div class="lesson-card card-hover" data-lesson="science">
+          <div class="lesson-card-top">
+            <div class="lesson-icon-wrap lesson-icon-science">🔬</div>
+            <div class="chip chip-accent">Science</div>
+          </div>
+          <div>
+            <h4>Science Quiz</h4>
+            <p>Physics, Biology and Chemistry questions</p>
+          </div>
+          <div class="lesson-meta">
+            <span class="lesson-difficulty diff-medium">● Medium</span>
+            <span class="lesson-points">+10 pts/q</span>
+          </div>
+          <div class="lesson-progress-wrap">
+            <div class="lesson-progress-label">
+              <span>Progress</span>
+              <span id="science-pct">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" data-lesson="science"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="showGameStart('science')">Start →</button>
+        </div>
+
+        <div class="lesson-card card-hover" data-lesson="geometry">
+          <div class="lesson-card-top">
+            <div class="lesson-icon-wrap lesson-icon-geometry">📐</div>
+            <div class="chip chip-warning">Geometry</div>
+          </div>
+          <div>
+            <h4>Geometry Drill</h4>
+            <p>Angles, areas, perimeters and shapes</p>
+          </div>
+          <div class="lesson-meta">
+            <span class="lesson-difficulty diff-medium">● Medium</span>
+            <span class="lesson-points">+10 pts/q</span>
+          </div>
+          <div class="lesson-progress-wrap">
+            <div class="lesson-progress-label">
+              <span>Progress</span>
+              <span id="geometry-pct">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" data-lesson="geometry"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="showGameStart('geometry')">Start →</button>
+        </div>
+
+        <div class="lesson-card card-hover" data-lesson="physics">
+          <div class="lesson-card-top">
+            <div class="lesson-icon-wrap lesson-icon-physics">⚡</div>
+            <div class="chip chip-physics">Physics</div>
+          </div>
+          <div>
+            <h4>Physics Rapid-Fire</h4>
+            <p>Race against the clock with rapid questions</p>
+          </div>
+          <div class="lesson-meta">
+            <span class="lesson-difficulty diff-hard">● Hard</span>
+            <span class="lesson-points">+5 pts/q</span>
+          </div>
+          <div class="lesson-progress-wrap">
+            <div class="lesson-progress-label">
+              <span>Progress</span>
+              <span id="physics-pct">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" data-lesson="physics"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="showGameStart('physics')">Start →</button>
+        </div>
+
+        <div class="lesson-card card-hover" data-lesson="memory">
+          <div class="lesson-card-top">
+            <div class="lesson-icon-wrap lesson-icon-memory">🧠</div>
+            <div class="chip chip-primary">Memory</div>
+          </div>
+          <div>
+            <h4>Memory Match — Vocab</h4>
+            <p>Match words to their definitions</p>
+          </div>
+          <div class="lesson-meta">
+            <span class="lesson-difficulty diff-brain">● Brain Teaser</span>
+            <span class="lesson-points">+20 pts</span>
+          </div>
+          <div class="lesson-progress-wrap">
+            <div class="lesson-progress-label">
+              <span>Progress</span>
+              <span id="memory-pct">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" data-lesson="memory"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="showGameStart('memory')">Start →</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- LEARNING MATERIALS (Faculty only) -->
+    <div id="materials-section">
+      <div class="section-title">
+        Learning Materials
+        <button id="upload-btn" onclick="openUploadModal()">+ Upload</button>
+      </div>
+      <div class="materials-grid" id="materials-grid">
+        <div class="material-card">
+          <div class="material-thumb">📘</div>
+          <div class="material-info">
+            <h4>Mathematics Basics</h4>
+            <p>Algebra and Geometry fundamentals</p>
+            <div class="material-meta">
+              <span class="chip chip-primary">PDF</span>
+              <span class="text-xs text-muted">2.4 MB</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-card">
+          <div class="material-thumb">🔬</div>
+          <div class="material-info">
+            <h4>Science Wonders</h4>
+            <p>Physics and Chemistry experiments</p>
+            <div class="material-meta">
+              <span class="chip chip-accent">PDF</span>
+              <span class="text-xs text-muted">3.1 MB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /dashboard-screen -->
+
+<!-- ============ GAME SCREEN ============ -->
+<div id="game-screen" class="screen">
+
+  <!-- Game Start Screen -->
+  <div id="game-start-screen" class="game-start-screen">
+    <div class="game-start-icon" id="game-start-icon">🎮</div>
+    <h2 id="game-start-title">Game Title</h2>
+    <p id="game-start-desc">Description</p>
+    <div class="game-info-pills">
+      <span class="game-info-pill" id="game-info-time">⏱ 60s Timer</span>
+      <span class="game-info-pill" id="game-info-pts">⭐ +10 pts/correct</span>
+      <span class="game-info-pill" id="game-info-difficulty">📊 Medium</span>
+    </div>
+    <div class="game-start-actions">
+      <button class="btn btn-primary btn-lg" id="game-start-btn" onclick="launchCurrentGame()">🚀 Start Game</button>
+      <button class="btn btn-secondary btn-lg" onclick="showDashboard()">← Back</button>
+    </div>
+  </div>
+
+  <!-- Active Game -->
+  <div id="game-active-area">
+    <!-- Top bar -->
+    <div class="game-topbar">
+      <button class="btn-icon btn-exit-game" onclick="confirmExitGame()">✕</button>
+      <h2 id="game-title">Game</h2>
+      <div class="game-topbar-stats">
+        <div class="game-stat-pill">⭐ <span id="game-score">0</span></div>
+        <div class="game-stat-pill" id="timer-pill">⏱ <span id="game-timer">60</span>s</div>
+      </div>
+    </div>
+
+    <!-- Game progress bar -->
+    <div class="game-progress-bar">
+      <div class="game-progress-fill" id="game-progress-fill"></div>
+    </div>
+
+    <div class="game-container">
+
+      <!-- Math Quiz -->
+      <div id="math-game-section">
+        <div class="question-box">
+          <div class="question-num" id="math-q-num">Question 1 of 10</div>
+          <div class="question-text" id="math-question">Loading…</div>
+        </div>
+        <div class="options-grid" id="math-options"></div>
+        <div class="game-feedback" id="math-feedback"></div>
+      </div>
+
+      <!-- Science Quiz -->
+      <div id="science-quiz-section">
+        <div class="quiz-header-row">
+          <span>Question <span id="science-qnum">1</span> of <span id="science-qtotal">10</span></span>
+          <span>Score: <span id="science-score">0</span></span>
+        </div>
+        <div class="question-box">
+          <div class="question-text" id="science-question"></div>
+        </div>
+        <div class="options-grid options-grid-spaced" id="science-options"></div>
+        <div class="game-feedback" id="science-feedback"><span id="science-feedback-text"></span></div>
+        <div class="quiz-actions">
+          <button class="btn btn-secondary btn-sm btn-game-overlay" id="science-next">Next →</button>
+        </div>
+        <div class="quiz-complete-box" id="science-complete">
+          <p class="quiz-emoji">🎉</p>
+          <p id="science-complete-text" class="quiz-complete-text"></p>
+          <button class="btn btn-accent btn-sm mt-12" id="science-restart">Play Again</button>
+        </div>
+      </div>
+
+      <!-- Geometry Drill -->
+      <div id="geometry-game-section">
+        <div class="quiz-header-row">
+          <span>Question <span id="geometry-qnum">1</span> of <span id="geometry-qtotal">5</span></span>
+          <span>Score: <span id="geometry-score">0</span></span>
+        </div>
+        <div class="question-box">
+          <div class="question-text" id="geometry-question"></div>
+        </div>
+        <div class="options-grid options-grid-spaced" id="geometry-options"></div>
+        <div class="game-feedback" id="geometry-feedback"><span id="geometry-feedback-text"></span></div>
+        <div class="quiz-actions">
+          <button class="btn btn-secondary btn-sm btn-game-overlay" id="geometry-next">Next →</button>
+        </div>
+        <div class="quiz-complete-box" id="geometry-complete">
+          <p class="quiz-emoji">🎉</p>
+          <p id="geometry-complete-text" class="quiz-complete-text"></p>
+          <button class="btn btn-accent btn-sm mt-12" id="geometry-restart">Play Again</button>
+        </div>
+      </div>
+
+      <!-- Physics Rapid-Fire -->
+      <div id="physics-game-section">
+        <div class="quiz-header-row">
+          <span>⏱ Time left: <span id="physics-time">45</span>s</span>
+          <span>Score: <span id="physics-score">0</span></span>
+        </div>
+        <div class="question-box">
+          <div class="question-text" id="physics-question"></div>
+        </div>
+        <div class="options-grid options-grid-spaced" id="physics-options"></div>
+        <div class="quiz-complete-box" id="physics-complete">
+          <p class="quiz-emoji">⏱ Time's Up!</p>
+          <p id="physics-complete-text" class="quiz-complete-text"></p>
+          <button class="btn btn-accent btn-sm mt-12" id="physics-restart">Play Again</button>
+        </div>
+      </div>
+
+      <!-- Memory Match -->
+      <div id="memory-game-section">
+        <div class="memory-game-header">
+          <div class="memory-stats">
+            <span>🔄 <strong id="memory-moves">0</strong> moves</span>
+            <span>✅ <strong id="memory-matches">0</strong> / 10</span>
+          </div>
+          <button class="btn btn-secondary btn-sm btn-game-overlay" id="memory-restart">Restart</button>
+        </div>
+        <div class="memory-grid" id="memory-grid"></div>
+        <div class="quiz-complete-box" id="memory-complete">
+          <p class="quiz-emoji">🧠 All Matched!</p>
+          <p id="memory-feedback-text" class="quiz-complete-text"></p>
+        </div>
+      </div>
+
+    </div><!-- /game-container -->
+  </div><!-- /game-active-area -->
+
+  <!-- Results Screen -->
+  <div id="results-screen" class="results-screen">
+    <div class="results-trophy" id="results-emoji">🏆</div>
+    <div class="results-title" id="results-title">Great Job!</div>
+    <div class="results-subtitle" id="results-subtitle">You've completed the challenge</div>
+
+    <div class="results-stats-grid">
+      <div class="results-stat">
+        <span class="results-stat-val" id="final-score">0</span>
+        <div class="results-stat-label">Points</div>
+      </div>
+      <div class="results-stat">
+        <span class="results-stat-val" id="correct-answers">0</span>
+        <div class="results-stat-label">Correct</div>
+      </div>
+      <div class="results-stat">
+        <span class="results-stat-val" id="total-questions">10</span>
+        <div class="results-stat-label">Total</div>
+      </div>
+    </div>
+
+    <div class="badge-earned-box hidden" id="badge-earned">
+      <div class="trophy">🏅</div>
+      <div>
+        <h4>New Badge Earned!</h4>
+        <p id="badge-name">Math Master</p>
+      </div>
+    </div>
+
+    <div class="results-actions">
+      <button class="btn btn-primary btn-lg" onclick="showDashboard()">← Back to Dashboard</button>
+      <button class="btn btn-accent btn-lg" id="play-again-btn" onclick="replayCurrentGame()">Play Again</button>
+    </div>
+  </div>
+
+</div><!-- /game-screen -->
+
+<!-- ============ TEACHER DASHBOARD ============ -->
+<div id="teacher-screen" class="screen">
+  <header class="teacher-topbar">
+    <div class="teacher-topbar-left">
+      <button class="btn-icon btn-icon-teacher" onclick="openSidebar()">☰</button>
+      <span class="teacher-topbar-title">Teacher Dashboard</span>
+    </div>
+    <div class="teacher-topbar-right">
+      <span class="teacher-name-label" id="teacher-name-display">Faculty</span>
+      <button class="btn btn-secondary btn-sm" onclick="showDashboard()">Student View</button>
+    </div>
+  </header>
+
+  <div class="teacher-layout">
+
+    <!-- Summary Cards -->
+    <div class="teacher-stats-row">
+      <div class="teacher-stat-card">
+        <div class="label">Total Students</div>
+        <div class="value" id="teacher-total-students">0</div>
+        <div class="change">↑ Registered</div>
+      </div>
+      <div class="teacher-stat-card">
+        <div class="label">Avg. Score</div>
+        <div class="value" id="teacher-avg-score">0</div>
+        <div class="change">Points average</div>
+      </div>
+      <div class="teacher-stat-card">
+        <div class="label">Lessons Done</div>
+        <div class="value" id="teacher-lessons-done">0</div>
+        <div class="change">Total across students</div>
+      </div>
+      <div class="teacher-stat-card">
+        <div class="label">Badges Earned</div>
+        <div class="value" id="teacher-badges">0</div>
+        <div class="change">Total across students</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Average Subject Scores</h3>
+        <canvas id="scores-chart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Lesson Completion</h3>
+        <canvas id="completion-chart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Badge Distribution</h3>
+        <canvas id="badges-chart" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Class Management -->
+    <div class="students-table-card">
+      <div class="section-title">Class Management <button onclick="openCreateClassModal()">+ Create Class</button></div>
+      <div id="teacher-classes-list"></div>
+      <div id="teacher-leaderboard-section" style="display:none;" class="mt-4">
+        <div class="section-title" id="teacher-leaderboard-title">Leaderboard</div>
+        <div id="teacher-leaderboard"></div>
+      </div>
+    </div>
+
+    <!-- Student List -->
+    <div class="students-table-card">
+      <div class="section-title">
+        Student Progress
+        <div class="section-title-actions">
+          <select id="subject-filter" class="filter-select">
+            <option value="all">All Subjects</option>
+            <option value="math">Math</option>
+            <option value="science">Science</option>
+          </select>
+        </div>
+      </div>
+      <div id="students-list"></div>
+    </div>
+
+    <!-- Upload Data -->
+    <div class="students-table-card">
+      <div class="section-title">Upload Student Data</div>
+      <p class="upload-hint">Upload JSON files exported from student devices to view analytics</p>
+      <div class="upload-area" id="teacher-upload-area" onclick="document.getElementById('student-data-upload').click()">
+        <div class="upload-icon">📂</div>
+        <p>Drag & drop or <span>click to upload</span> student data JSON files</p>
+      </div>
+      <input type="file" id="student-data-upload" class="file-input-hidden" multiple accept=".json">
+      <div id="uploaded-files"></div>
+    </div>
+
+    <!-- Announcements -->
+    <div class="students-table-card">
+      <div class="section-title">Post Announcement</div>
+      <div class="announce-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Title</label>
+            <input id="ann-title" class="input" type="text" placeholder="Announcement title">
+          </div>
+          <div class="form-group">
+            <label>Audience</label>
+            <select id="ann-audience" class="input">
+              <option value="all">All Students</option>
+              <option value="student">Specific Student</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Student Name (optional)</label>
+            <input id="ann-target" class="input" type="text" placeholder="Leave blank for all">
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <input id="ann-message" class="input" type="text" placeholder="Your message here…">
+          </div>
+        </div>
+        <div class="text-right">
+          <button class="btn btn-primary" id="post-announcement-btn">📢 Post Announcement</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /teacher-screen -->
+
+<!-- ============ UPLOAD MODAL ============ -->
+<div id="upload-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Upload Learning Material</h3>
+      <button class="close-modal" onclick="closeUploadModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="upload-area" id="upload-drop-area">
+        <div class="upload-icon">📁</div>
+        <p>Drag and drop your file here or <span>browse</span></p>
+        <input type="file" id="file-input" class="file-input-hidden" accept=".pdf,.doc,.docx,.ppt,.pptx">
+      </div>
+      <div id="upload-preview">
+        <div class="upload-preview-row">
+          <span class="upload-preview-icon">📄</span>
+          <div class="upload-preview-info">
+            <div class="font-bold text-sm file-name"></div>
+            <div class="text-xs text-muted file-size"></div>
+          </div>
+          <button class="btn-icon remove-file">✕</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
+      <button class="btn btn-primary" id="confirm-upload" disabled>Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ EXIT GAME MODAL ============ -->
+<div id="exit-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Exit Game?</h3>
+      <button class="close-modal" onclick="document.getElementById('exit-modal').classList.remove('show')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="exit-modal-text">Your current progress in this game will be lost. Are you sure you want to exit?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('exit-modal').classList.remove('show')">Keep Playing</button>
+      <button class="btn btn-primary" onclick="exitGameConfirmed()">Exit Game</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/utils.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/streak.js"></script>
+<script src="js/classroom.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/games/results.js"></script>
+<script src="js/games/math.js"></script>
+<script src="js/games/science.js"></script>
+<script src="js/games/geometry.js"></script>
+<script src="js/games/physics.js"></script>
+<script src="js/games/memory.js"></script>
+<script src="js/games/launcher.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
