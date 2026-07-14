@@ -7,7 +7,7 @@ window.addEventListener('DOMContentLoaded', initApp);
 function initApp() {
   loadUserData();
 
-  const stored = localStorage.getItem('eduquest_user');
+  const stored =sessionStorage.getItem('eduquest_user')
   if (stored) {
     try { userData = { ...userData, ...JSON.parse(stored) }; } catch(e) {}
   }
