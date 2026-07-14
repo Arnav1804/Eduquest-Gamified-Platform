@@ -12,4 +12,4 @@ A gamified STEM learning platform with:
 - LocalStorage
 
 ## Live Demo
-https://arnav1804.github.io/eduquest/
+[https://arnav1804.github.io/eduquest/](https://arnav1804.github.io/Eduquest-Gamified-Platform/)
