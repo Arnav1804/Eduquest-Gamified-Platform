@@ -6,3 +6,4 @@ const router = express.Router();
 router.use(healthRoutes);
 
 module.exports = router;
+router.use('/auth', require('./auth.routes'));

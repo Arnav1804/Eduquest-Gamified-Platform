@@ -5,3 +5,66 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  phone        String    @unique
+  passwordHash String
+  role         String    @default("student") // "student" or "teacher"
+  createdAt    DateTime  @default(now())
+
+  scores       Score[]
+  activities   Activity[]
+  streak       Streak?
+  memberships  ClassMembership[]
+}
+
+model Score {
+  id        String   @id @default(uuid())
+  userId    String
+  subject   String   // "math", "science", etc.
+  points    Int
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  userId    String
+  message   String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Streak {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  currentStreak Int      @default(0)
+  lastPlayed    DateTime?
+
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model ClassRoom {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  teacherName String
+  createdAt   DateTime @default(now())
+
+  members     ClassMembership[]
+}
+
+model ClassMembership {
+  id        String    @id @default(uuid())
+  userId    String
+  classId   String
+
+  user      User      @relation(fields: [userId], references: [id])
+  classRoom ClassRoom @relation(fields: [classId], references: [id])
+
+  @@unique([userId, classId])
+}
